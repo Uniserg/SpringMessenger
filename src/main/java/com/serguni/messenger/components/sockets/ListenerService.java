@@ -4,9 +4,6 @@ import com.serguni.messenger.dbms.models.Configuration;
 import com.serguni.messenger.dbms.models.Session;
 import com.serguni.messenger.dbms.models.Tracking;
 import com.serguni.messenger.dbms.models.User;
-import com.serguni.messenger.dbms.repositories.ConfigurationRepository;
-import com.serguni.messenger.dbms.repositories.SessionRepository;
-import com.serguni.messenger.dbms.repositories.UserRepository;
 import com.serguni.messenger.dto.SocketMessage;
 import com.serguni.messenger.dto.SocketMessage.MessageType;
 import com.serguni.messenger.dto.TransferToDto;
@@ -61,6 +58,7 @@ public class ListenerService extends Thread {
 
                     case EDIT_CONFIGURATION -> editConfiguration((ConfigurationDto) message.getBody());
                     case DELETE_ALL_OTHER_SESSIONS -> Server.deleteAllOtherSessions(session, this);
+                    case DELETE_OTHER_SESSION -> Server.deleteOtherSession(session, (long)message.getBody());
                 }
 
 //                if (message.getType() == SocketMessage.MessageType.SEARCH_USER) {
@@ -98,12 +96,15 @@ public class ListenerService extends Thread {
                 ioException.printStackTrace();
             }
 
-            Server.USERS_SESSIONS.removeSession(session);
+            Server.USERS_SESSIONS.removeSessionWithUser(session);
             Server.trackingRepository.deleteAllTrackedUsersByTrackingSessionsId(session.getId());
 
             // ОТПРАВКА СООБЩЕНИЯ ЧТО ПОЛЬЗОВАТЕЛЬ ВЫШЕЛ
             if (!Server.USERS_SESSIONS.isOnlineByUserId(session.getUser().getId())) {
-                Server.sendUserStatus(session.getUser(), session.getLastOnline());
+                User user = Server.userRepository.findById(session.getUser().getId()).orElse(null);
+                // ВОЗМОЖНА ОШИБКА
+
+                Server.sendUserStatus(user, session.getLastOnline());
             }
 
             System.out.println("УДАЛИЛИ ОТСЛЕЖИВАЕМЫЕ ОБЪЕКТЫ");
@@ -128,7 +129,7 @@ public class ListenerService extends Thread {
             for (Configuration configuration : configurations) {
                 User user = configuration.getUser();
 
-                Server.trackingRepository.save(new Tracking(user.getId(), session.getUser().getId(),session.getId()));
+                Server.trackingRepository.save(new Tracking(user.getId(), session.getUser().getId(), session.getId()));
 
                 UserInfoDto userInfoDto = TransferToDto.UserInfoDto(configuration.getUser());
 
@@ -156,7 +157,9 @@ public class ListenerService extends Thread {
     private void editConfiguration(ConfigurationDto configurationDto) {
         Thread thread = new Thread(() -> {
             Configuration configuration = new Configuration(configurationDto);
-            configuration.setUser(session.getUser());
+            User user = Server.userRepository.findById(session.getUser().getId()).orElse(null);
+
+            configuration.setUser(user);
             Server.configurationRepository.save(configuration);
         });
 
@@ -167,7 +170,8 @@ public class ListenerService extends Thread {
     private void editAboutMe(String aboutMe) {
         Thread thread = new Thread(() -> {
 
-            User user = session.getUser();
+            User user = Server.userRepository.findById(session.getUser().getId()).orElse(null);
+            assert user != null;
             user.setAboutMe(aboutMe);
 
             //ИЗМЕНЕНИЕ О СЕБЕ ОТПРАВЛЯЕМ СРАЗУ ВСЕМ
@@ -183,7 +187,8 @@ public class ListenerService extends Thread {
     private void editName(String lastName, String firstName) {
         Thread thread = new Thread(() -> {
 
-            User user = session.getUser();
+            User user = Server.userRepository.findById(session.getUser().getId()).orElse(null);
+            assert user != null;
 
             user.setLastName(lastName);
             user.setFirstName(firstName);
@@ -195,17 +200,19 @@ public class ListenerService extends Thread {
             Server.userRepository.save(user);
         });
 
-        thread.setDaemon(true);
+//        thread.setDaemon(true);
         thread.start();
     }
 
     private void editAvatar(byte[] avatar) {
         Thread thread = new Thread(() -> {
-            User user = session.getUser();
+            User user = Server.userRepository.findById(session.getUser().getId()).orElse(null);
+            assert user != null;
             user.setAvatar(avatar);
 
             Server.sendUserStatus(user, new Date(0));
             System.out.println("ОТПРАВИЛИ");
+            System.out.println("МЫ ТУТ - ЭТО РАБОТАЕТ");
             Server.userRepository.save(user);
         });
 
@@ -219,7 +226,7 @@ public class ListenerService extends Thread {
         System.out.println(session);
         Server.sessionRepository.delete(session);
 //        sessionRepository.deleteAllInBatch();
-        Server.USERS_SESSIONS.removeSession(session);
+        Server.USERS_SESSIONS.removeSessionWithUser(session);
         System.out.println("СЕССИЯ УДАЛЕНА");
         try {
             clientSocket.close();

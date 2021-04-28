@@ -23,10 +23,10 @@ public class GenerationKeyService {
         String newKey = generator.getTemporaryKey();
         key = new TemporaryKey(newKey, user);
 
-        EmailService emailService = new EmailServiceImpl();
-        emailService.sendSimpleMessage(user.getEmail(),
-                "Authorization",
-                "Your temporary code:" + key.getKey());
+//        EmailService emailService = new EmailServiceImpl();
+//        emailService.sendSimpleMessage(user.getEmail(),
+//                "Authorization",
+//                "Your temporary code:" + key.getKey());
 
         System.out.println(key.getKey());
         temporaryKeyRepository.save(key);

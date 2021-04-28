@@ -7,6 +7,7 @@ import com.serguni.messenger.dbms.repositories.ConfigurationRepository;
 import com.serguni.messenger.dbms.repositories.SessionRepository;
 import com.serguni.messenger.dbms.repositories.TrackingRepository;
 import com.serguni.messenger.dbms.repositories.UserRepository;
+import com.serguni.messenger.dto.SessionCookie;
 import com.serguni.messenger.dto.SocketMessage;
 import com.serguni.messenger.dto.SocketMessage.MessageType;
 import com.serguni.messenger.dto.TransferToDto;
@@ -54,9 +55,12 @@ public class Server extends Thread {
     }
 
     public static void deleteAllOtherSessions(Session session, ListenerService currentListenerService) throws IOException {
-        USERS_SESSIONS.removeSession(session);
+//        USERS_SESSIONS.removeSession(session);
+        USERS_SESSIONS.getSessionsByUserId(session.getUser().getId()).remove(session.getId());
 
         Map<Long, ListenerService> otherSessions = USERS_SESSIONS.getSessionsByUserId(session.getUser().getId());
+        System.out.println("Server -> 61 -> null other sessions");
+
         for (long otherSessionId : otherSessions.keySet()) {
             otherSessions.get(otherSessionId).closeSocket();
         }
@@ -65,6 +69,25 @@ public class Server extends Thread {
         USERS_SESSIONS.addSession(session, currentListenerService);
         sessionRepository.deleteAllByUserId(session.getUser().getId());
         sessionRepository.save(session);
+    }
+
+    public static void deleteOtherSession(Session session, long sessionOnDeleteId) throws IOException {
+        System.out.println("ТЕКУЩИЙ ПОЛЬЗОВАТЕЛЬ " + session.getUser().getId() );
+        System.out.println("ВСЕ СЕССИИ" + USERS_SESSIONS);
+        Map<Long, ListenerService> userSessions = USERS_SESSIONS.getSessionsByUserId(session.getUser().getId());
+
+        if (userSessions.containsKey(sessionOnDeleteId))
+            userSessions.remove(sessionOnDeleteId).closeSocket();
+
+        sessionRepository.deleteById(sessionOnDeleteId);
+
+        ListenerService currentListenerService = userSessions.remove(session.getId());
+
+        for (ListenerService listenerService : userSessions.values()) {
+            listenerService.out.writeObject(new SocketMessage(MessageType.DELETE_OTHER_SESSION, sessionOnDeleteId));
+        }
+
+        userSessions.put(session.getId(), currentListenerService);
     }
 
     public static void sendNewSession(Session session) {
@@ -91,6 +114,10 @@ public class Server extends Thread {
         SocketMessage socketMessage = new SocketMessage(MessageType.UPDATE_TRACKING_USER, userInfoDto);
 
         Map<Long, ListenerService> sessionsOfCurrentUser = USERS_SESSIONS.getSessionsByUserId(user.getId());
+
+        System.out.println("Server -> 95 -> СМОТРИМ СЕССИ ПОЛЬЗОВАТЕЛЯ ПЕРЕД ОТПРАВКОЙ ИЗМ. ПОЛЬЗОВАТЕЛЯ");
+        System.out.println(sessionsOfCurrentUser);
+
         if (sessionsOfCurrentUser != null) {
             for (ListenerService listenerService : sessionsOfCurrentUser.values()) {
                 try {
@@ -144,6 +171,10 @@ public class Server extends Thread {
 //        }
     }
 
+//    public static User getUserById(long userId) {
+//        return userRepository.findById(userId).orElse(null);
+//    }
+
     @Override
     public void run() {
         while (true) {
@@ -153,7 +184,7 @@ public class Server extends Thread {
                 new Thread(() -> {
                     try {
                         ObjectInputStream objectIs = new ObjectInputStream(socketListen.getInputStream());
-                        SessionDto sessionCookie = (SessionDto) objectIs.readObject();
+                        SessionCookie sessionCookie = (SessionCookie) objectIs.readObject();
 
                         if (sessionCookie == null) {
                             System.out.println("Неверный запрос от клиента");
@@ -161,7 +192,7 @@ public class Server extends Thread {
                             return;
                         }
 
-                        Session session = sessionRepository.findById(sessionCookie.getId()).orElse(null);
+                        Session session = sessionRepository.findById(sessionCookie.getSessionId()).orElse(null);
 
 //                        OutputStream os = socketListen.getOutputStream();
                         ObjectOutputStream out = new ObjectOutputStream(socketListen.getOutputStream());
@@ -179,13 +210,15 @@ public class Server extends Thread {
                             return;
                         }
 
+                        User user = userRepository.findById(session.getUser().getId()).orElse(null);
+
                         //ЗДЕСЬ МОЖНО ВЗЯТЬ ЮЗЕРА, ПОДГРУЗИТЬ ДАННЫЕ ЧАТОВ И Т.Д И ОТПРАВИТЬ
-                        out.writeObject(new SocketMessage(MessageType.LOGIN, TransferToDto.getUserDto(session.getUser())));
+                        out.writeObject(new SocketMessage(MessageType.LOGIN, TransferToDto.getUserDto(user)));
 
                         //ОТПРАВЛЯЕМ ВСЕМ ЧТО ПОЛЬЗОВАТЕЛЬ ONLINE
-                        if (!Server.USERS_SESSIONS.isOnlineByUserId(session.getUser().getId()) ) {
+                        if (!Server.USERS_SESSIONS.isOnlineByUserId(session.getUser().getId())) {
                             System.out.println("ОТПРАВЛЯЕМ ONLINE");
-                            Server.sendUserStatus(session.getUser(), new Date(0));
+                            Server.sendUserStatus(user, new Date(0));
                         }
 
                         ListenerService listenerService = new ListenerService(session, socketListen, objectIs, out);

@@ -47,6 +47,7 @@ public class Session implements Serializable {
     private String os;
     private String location;
 
+//    //ИСПОЛЬЗОВАТЬ ПРИ СОЗДАНИИ
     @ManyToOne(optional = false)
     @JoinColumn(name = "usr_id", nullable = false)
     private User user;
@@ -113,13 +114,13 @@ public class Session implements Serializable {
         this.location = location;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
+//    public User getUser() {
+//        return user;
+//    }
+//
+//    public void setUser(User user) {
+//        this.user = user;
+//    }
 
     public boolean isActive() {
         return isActive;
@@ -137,7 +138,15 @@ public class Session implements Serializable {
         this.cookie = cookie;
     }
 
-    @Override
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+        @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -160,7 +169,6 @@ public class Session implements Serializable {
                 ", device='" + device + '\'' +
                 ", os='" + os + '\'' +
                 ", location='" + location + '\'' +
-                ", user=" + user +
                 ", isActive=" + isActive +
                 '}';
     }

@@ -2,13 +2,15 @@ package com.serguni.messenger.components.collections;
 
 import com.serguni.messenger.components.sockets.ListenerService;
 import com.serguni.messenger.dbms.models.Session;
-import com.serguni.messenger.dbms.models.User;
-
 import java.util.*;
 
 
 public class SessionCollection {
     private final Map<Long, Map<Long, ListenerService>> usersSessions;
+//    private final Map<User, Map<Session, ListenerService>> userSessionsMap;
+//    private Map<Long, UserSession> userSession;
+//
+//    private Map<Long, >
 
 //    //ОТСЛЕЖИВАЕМЫЕ ПОЛЬЗОВАТЕЛИ И МНОЖЕСТВО СЕССИЙ КОТОРЫЕ ОТСЛЕЖИВАЮТ ЕГО
 //    private final Map<Long, Set<Long>> trackedUsers;
@@ -24,6 +26,7 @@ public class SessionCollection {
 
     //добавить поиск видимых чатов добавленного пользователя. После по id настоящего чата ищем другие видмые чаты и рассылаем всем пользователям этого юзера, что он онлайн
     public void addSession(Session session, ListenerService listenerService) {
+
         Map<Long, ListenerService> sessionsByUserId = usersSessions.get(session.getUser().getId());
 
 
@@ -41,7 +44,7 @@ public class SessionCollection {
 
     }
 
-    public void removeSession(Session session) {
+    public void removeSessionWithUser(Session session) {
         Map<Long, ListenerService> sessionsByUserId = usersSessions.get(session.getUser().getId());
         sessionsByUserId.remove(session.getId());
         if (sessionsByUserId.isEmpty())

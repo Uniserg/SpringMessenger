@@ -7,6 +7,7 @@ import com.serguni.messenger.dbms.models.Session;
 import com.serguni.messenger.dbms.models.TemporaryKey;
 import com.serguni.messenger.dbms.repositories.SessionRepository;
 import com.serguni.messenger.dbms.repositories.TemporaryKeyRepository;
+import com.serguni.messenger.dto.SessionCookie;
 import com.serguni.messenger.utils.CryptoUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class ValidationKeyController {
     }
 
     @PostMapping("/valid/")
-    public ResponseEntity<Session> createSession(@RequestBody SessionContext sessionContext) {
+    public ResponseEntity<SessionCookie> createSession(@RequestBody SessionContext sessionContext) {
 
         Session sessionReq = sessionContext.getSession();
         String key = sessionContext.getKey();
@@ -50,6 +51,7 @@ public class ValidationKeyController {
 
             String cookie = CryptoUtil.createHash(String.valueOf(sessionReq.hashCode()));
             sessionReq.setCookie(cookie);
+//            sessionReq.setUser(temporaryKey.getUser());
             sessionReq.setUser(temporaryKey.getUser());
 
             Session newSession = sessionRepository.save(sessionReq);
@@ -59,7 +61,7 @@ public class ValidationKeyController {
 
             System.out.println("ОТПРАВЛЯЕМ ПО HTTP " + newSession);
             System.out.println(newSession);
-            return new ResponseEntity<>(newSession, HttpStatus.OK);
+            return new ResponseEntity<>(new SessionCookie(newSession.getId(), newSession.getCookie()), HttpStatus.OK);
 
         } else {
             System.out.println(Thread.currentThread().getName());

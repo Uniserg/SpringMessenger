@@ -3,9 +3,7 @@ package com.serguni.messenger.dto;
 import com.serguni.messenger.dbms.models.*;
 import com.serguni.messenger.dto.models.*;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class TransferToDto {
