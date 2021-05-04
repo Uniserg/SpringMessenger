@@ -1,6 +1,8 @@
 package com.serguni.messenger.dbms.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -28,11 +30,29 @@ public class Chat implements Serializable {
     @JsonIgnore
     private String secretKey;
 
-    @OneToMany(mappedBy = "chat", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "chat", fetch = FetchType.EAGER)
     private Set<Message> messages;
 
-    @OneToMany(mappedBy = "chat", fetch = FetchType.LAZY)
+    @JsonIgnore
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OneToMany(mappedBy = "chat", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<WatchedChat> watchedChats;
+
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OneToOne(mappedBy = "chat")
+    private PrivateChat privateChat;
+
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OneToOne(mappedBy = "chat")
+    private Group groupChat;
+
+    public Chat(long id, String secretKey) {
+        this.id = id;
+        this.secretKey = secretKey;
+    }
+
+    public Chat() {
+    }
 
     public long getId() {
         return id;
@@ -46,6 +66,22 @@ public class Chat implements Serializable {
                 ", messages=" + messages +
                 ", watchedChats=" + watchedChats +
                 '}';
+    }
+
+    public Group getGroupChat() {
+        return groupChat;
+    }
+
+    public void setGroupChat(Group groupChat) {
+        this.groupChat = groupChat;
+    }
+
+    public PrivateChat getPrivateChat() {
+        return privateChat;
+    }
+
+    public void setPrivateChat(PrivateChat privateChat) {
+        this.privateChat = privateChat;
     }
 
     public void setId(long id) {

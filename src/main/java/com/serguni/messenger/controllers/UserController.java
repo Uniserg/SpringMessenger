@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
+
 @Controller
 public class UserController {
 
@@ -40,6 +42,7 @@ public class UserController {
         if (warning.length() == 0) {
 
             user.setConfiguration(new Configuration(user));
+            user.setLastOnline(new Date(0));
             User savedUser = userRepository.save(user);
             System.out.println(savedUser);
 

@@ -1,11 +1,12 @@
 package com.serguni.messenger.dto.models;
 
-import com.serguni.messenger.dbms.models.WatchedChat;
+import com.serguni.messenger.dbms.models.Message;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
+import java.util.SortedSet;
 
 public class WatchedChatDto implements Serializable {
     @Serial
@@ -43,7 +44,8 @@ public class WatchedChatDto implements Serializable {
     private Date syncTime;
     private boolean isAdmin;
     private boolean isBlocked;
-    private ChatDto chat;
+    private SortedSet<MessageDto> messages;
+    private SortedSet<UserInfoDto> users;
 
     public WatchedChatDto(long chatId,
                           long userId,
@@ -51,14 +53,16 @@ public class WatchedChatDto implements Serializable {
                           Date syncTime,
                           boolean isAdmin,
                           boolean isBlocked,
-                          ChatDto chat) {
+                          SortedSet<MessageDto> watchedMessages,
+                          SortedSet<UserInfoDto> users) {
         this.chatId = chatId;
         this.userId = userId;
         this.name = name;
         this.syncTime = syncTime;
         this.isAdmin = isAdmin;
         this.isBlocked = isBlocked;
-        this.chat = chat;
+        this.messages = watchedMessages;
+        this.users = users;
     }
 
     //    public WatchedChatDto(WatchedChat watchedChat) {
@@ -117,13 +121,5 @@ public class WatchedChatDto implements Serializable {
 
     public void setBlocked(boolean blocked) {
         isBlocked = blocked;
-    }
-
-    public ChatDto getChat() {
-        return chat;
-    }
-
-    public void setChat(ChatDto chat) {
-        this.chat = chat;
     }
 }

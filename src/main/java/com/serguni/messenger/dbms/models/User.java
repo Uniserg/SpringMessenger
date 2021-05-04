@@ -8,6 +8,7 @@ import javax.persistence.*;;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
 
@@ -83,9 +84,9 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "fromUser",fetch = FetchType.EAGER)
     private Set<FriendRequest> outgoingFriendRequests;
 
-//    @Column(name = "last_online")
-//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd.MM.yyyy HH:mm:ss")
-//    private LocalDateTime lastOnline;
+
+    @Column(name = "last_online")
+    private Date lastOnline;
 
 
 //    @Override
@@ -116,6 +117,14 @@ public class User implements Serializable {
         int result = Objects.hash(id, nickname, email, firstName, lastName, aboutMe);
         result = 31 * result + Arrays.hashCode(avatar);
         return result;
+    }
+
+    public Date getLastOnline() {
+        return lastOnline;
+    }
+
+    public void setLastOnline(Date lastOnline) {
+        this.lastOnline = lastOnline;
     }
 
     public long getId() {

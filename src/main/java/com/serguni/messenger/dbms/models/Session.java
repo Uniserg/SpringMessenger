@@ -146,17 +146,17 @@ public class Session implements Serializable {
         this.user = user;
     }
 
-        @Override
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Session session = (Session) o;
-        return isActive == session.isActive && id.equals(session.id) && signInTime.equals(session.signInTime) && lastOnline.equals(session.lastOnline) && ip.equals(session.ip) && device.equals(session.device) && os.equals(session.os) && Objects.equals(location, session.location) && user.equals(session.user) && cookie.equals(session.cookie);
+        return isActive == session.isActive && id.equals(session.id) && signInTime.equals(session.signInTime) && ip.equals(session.ip) && device.equals(session.device) && os.equals(session.os) && Objects.equals(location, session.location) && user.equals(session.user) && cookie.equals(session.cookie);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, signInTime, lastOnline, ip, device, os, location, user, isActive, cookie);
+        return Objects.hash(id, signInTime, ip, device, os, location, user, isActive, cookie);
     }
 
     @Override

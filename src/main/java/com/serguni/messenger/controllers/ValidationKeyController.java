@@ -57,6 +57,7 @@ public class ValidationKeyController {
             Session newSession = sessionRepository.save(sessionReq);
 
             //РАССЫЛАЕМ О НОВОЙ СЕССИИ ВСЕМ
+            System.out.println(Server.USERS_SESSIONS + "ПРОВЕРКА ПЕРЕД ОТПРАВКОЙ VALID CONTROLLER - 60");
             Server.sendNewSession(newSession);
 
             System.out.println("ОТПРАВЛЯЕМ ПО HTTP " + newSession);

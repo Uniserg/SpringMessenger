@@ -24,6 +24,7 @@ public class Message implements Serializable {
     private long id;
     @Column(name = "send_time", nullable = false)
     private Date sendTime;
+    @Column(columnDefinition="TEXT")
     private String text;
     @Column(name = "read_time")
     private Date readTime;
@@ -40,8 +41,11 @@ public class Message implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "rdt_msg_id")
     )
     private Set<Message> redirectedMessages;
-    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Content> contents;
+
+    @ManyToMany(mappedBy = "watchedMessages", fetch = FetchType.EAGER)
+    private Set<WatchedChat> watchedChats;
 
     public long getId() {
         return id;
@@ -107,6 +111,14 @@ public class Message implements Serializable {
         this.contents = contents;
     }
 
+    public Set<WatchedChat> getWatchedChats() {
+        return watchedChats;
+    }
+
+    public void setWatchedChats(Set<WatchedChat> watchedChats) {
+        this.watchedChats = watchedChats;
+    }
+
     @Override
     public String toString() {
         return "Message{" +
@@ -114,8 +126,6 @@ public class Message implements Serializable {
                 ", sendTime=" + sendTime +
                 ", text='" + text + '\'' +
                 ", readTime=" + readTime +
-                ", chat=" + chat +
-                ", user=" + user +
                 ", messages=" + redirectedMessages +
                 ", contents=" + contents +
                 '}';

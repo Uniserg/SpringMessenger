@@ -1,23 +1,29 @@
 package com.serguni.messenger.dbms.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
-@IdClass(WatchedChat.WatchedChatPK.class)
+//@IdClass(WatchedChat.WatchedChatPK.class)
 @Table(name = "watched_chats")
 public class WatchedChat implements Serializable {
     @Serial
     private static final long serialVersionUID = 1;
 
+    @Embeddable
     public static class WatchedChatPK implements Serializable {
         @Serial
         private static final long serialVersionUID = 1;
 
+        @Column(name = "chat_id")
         protected long chatId;
+        @Column(name = "usr_id")
         protected long userId;
 
         public WatchedChatPK() {
@@ -41,14 +47,29 @@ public class WatchedChat implements Serializable {
             return Objects.hash(chatId, userId);
         }
     }
+//
+//    @Id
+//    @Column(name = "chat_id")
+//    private long chatId;
+//
+//    @Id
+//    @Column(name = "usr_id")
+//    private long userId;
 
-    @Id
-    @Column(name = "chat_id")
-    private long chatId;
 
-    @Id
-    @Column(name = "usr_id")
-    private long userId;
+    public WatchedChat() {
+    }
+
+    public WatchedChat(WatchedChatPK watchedChatPK, String name, Date syncTime, boolean isAdmin, boolean isBlocked) {
+        this.watchedChatPK = watchedChatPK;
+        this.name = name;
+        this.syncTime = syncTime;
+        this.isAdmin = isAdmin;
+        this.isBlocked = isBlocked;
+    }
+
+    @EmbeddedId
+    private WatchedChatPK watchedChatPK;
 
     @Column(nullable = false)
     private String name;
@@ -62,28 +83,55 @@ public class WatchedChat implements Serializable {
     @Column(name = "is_blk", nullable = false)
     private boolean isBlocked;
 
+    @JsonIgnore
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "watched_chats_messages",
+            joinColumns = {@JoinColumn(name = "chat_id"),
+                    @JoinColumn(name = "user_id")},
+            inverseJoinColumns = @JoinColumn(name = "message_id")
+    )
+    private Set<Message> watchedMessages;
+
     @ManyToOne(optional = false)
-    @JoinColumn(name = "chat_id", nullable = false, insertable = false, updatable = false)
+    @JoinColumn(name = "chat_id", insertable = false, updatable = false)
     private Chat chat;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "usr_id", nullable = false, insertable = false, updatable = false)
+    @JoinColumn(name = "usr_id", insertable = false, updatable = false)
     private User user;
 
-    public long getChatId() {
-        return chatId;
+    public WatchedChat(String name, Date syncTime, boolean isAdmin, boolean isBlocked, Chat chat) {
+        this.name = name;
+        this.syncTime = syncTime;
+        this.isAdmin = isAdmin;
+        this.isBlocked = isBlocked;
+        this.chat = chat;
     }
 
-    public void setChatId(long chatId) {
-        this.chatId = chatId;
+    //    public long getChatId() {
+//        return chatId;
+//    }
+//
+//    public void setChatId(long chatId) {
+//        this.chatId = chatId;
+//    }
+//
+//    public long getUserId() {
+//        return userId;
+//    }
+//
+//    public void setUserId(long userId) {
+//        this.userId = userId;
+//    }
+
+
+    public WatchedChatPK getWatchedChatPK() {
+        return watchedChatPK;
     }
 
-    public long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(long userId) {
-        this.userId = userId;
+    public void setWatchedChatPK(WatchedChatPK watchedChatPK) {
+        this.watchedChatPK = watchedChatPK;
     }
 
     public String getName() {
@@ -134,17 +182,23 @@ public class WatchedChat implements Serializable {
         this.user = user;
     }
 
+    public Set<Message> getWatchedMessages() {
+        return watchedMessages;
+    }
+
+    public void setWatchedMessages(Set<Message> watchedMessages) {
+        this.watchedMessages = watchedMessages;
+    }
+
+
     @Override
     public String toString() {
         return "WatchedChat{" +
-                "chatId=" + chatId +
-                ", userId=" + userId +
-                ", name='" + name + '\'' +
+                "name='" + name + '\'' +
                 ", syncTime=" + syncTime +
                 ", isAdmin=" + isAdmin +
                 ", isBlocked=" + isBlocked +
-                ", chat=" + chat +
-                ", user=" + user +
+                ", watchedMessages=" + watchedMessages +
                 '}';
     }
 }

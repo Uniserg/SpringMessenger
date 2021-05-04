@@ -1,14 +1,24 @@
 package com.serguni.messenger.dto;
 
+import com.serguni.messenger.components.sockets.Server;
 import com.serguni.messenger.dbms.models.*;
 import com.serguni.messenger.dto.models.*;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class TransferToDto {
 
-    public static UserInfoDto UserInfoDto(User user) {
+    public static GroupDto getGroupDto(Group group) {
+        GroupDto groupDto = new GroupDto(
+                group.getId(),
+                group.getIcon(),
+                group.getName(),
+                group.getPassword()
+        );
+        return groupDto;
+    }
+
+    public static UserInfoDto getUserInfoDto(User user) {
         UserInfoDto userInfoDto = new UserInfoDto(
                 user.getId(),
                 user.getNickname(),
@@ -16,12 +26,17 @@ public class TransferToDto {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getAboutMe(),
-                user.getAvatar());
-
+                user.getAvatar(),
+                user.getLastOnline()
+        );
         return userInfoDto;
     }
 
     public static UserDto getUserDto(User user) {
+
+        System.out.println("TRANSFER TO DTO - 36 - ПРОВЕРКА ЧАТОВ");
+        System.out.println(user.getWatchedChats().size());
+
         UserDto userDto = new UserDto(
                 user.getId(),
                 user.getNickname(),
@@ -29,11 +44,13 @@ public class TransferToDto {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getAboutMe(),
-                user.getAvatar());
+                user.getAvatar(),
+                user.getLastOnline());
 
         Set<SessionDto> sessions = null;
         Set<UserInfoDto> friends = null;
-        Set<WatchedChatDto> watchedChatDtos = null;
+        Map<UserInfoDto, WatchedChatDto> watchedPrivateChats = null;
+        Map<GroupDto, WatchedChatDto> watchedGroupChats = null;
         Set<BlockedUserDto> blockedUserDtos = null;
         Set<FriendRequestDto> incomingFriendsRequests = null;
         Set<FriendRequestDto> outgoingFriendsRequests = null;
@@ -49,14 +66,33 @@ public class TransferToDto {
         if (user.getFriends() != null) {
             friends = new HashSet<>();
             for (User friend : user.getFriends()) {
-                friends.add(TransferToDto.UserInfoDto(friend));
+                friends.add(TransferToDto.getUserInfoDto(friend));
             }
         }
 
         if (user.getWatchedChats() != null) {
-            watchedChatDtos = new HashSet<>();
+            watchedPrivateChats = new HashMap<>();
+            watchedGroupChats = new HashMap<>();
+
             for (WatchedChat watchedChat : user.getWatchedChats()) {
-                watchedChatDtos.add(TransferToDto.getWatchedChatDto(watchedChat));
+                Chat chat = watchedChat.getChat();
+
+                if (chat.getPrivateChat() != null) {
+                    PrivateChat privateChat = chat.getPrivateChat();
+                    User otherUser = (user.getId() != privateChat.getUser1().getId())
+                            ? privateChat.getUser1()
+                            : privateChat.getUser2();
+
+                    if (Server.USERS_SESSIONS.isOnlineByUserId(otherUser.getId())) {
+                        otherUser.setLastOnline(new Date(0));
+                    }
+
+                    watchedPrivateChats.put(TransferToDto.getUserInfoDto(otherUser),
+                            TransferToDto.getWatchedChatDto(watchedChat));
+                } else {
+                    watchedGroupChats.put(TransferToDto.getGroupDto(chat.getGroupChat()),
+                            TransferToDto.getWatchedChatDto(watchedChat));
+                }
             }
         }
 
@@ -85,7 +121,8 @@ public class TransferToDto {
         userDto.setSessions(sessions);
         userDto.setFriends(friends);
         userDto.setBlockedUsers(blockedUserDtos);
-        userDto.setWatchedChats(watchedChatDtos);
+        userDto.setWatchedPrivateChats(watchedPrivateChats);
+        userDto.setWatchedGroupChats(watchedGroupChats);
         userDto.setIncomingFriendRequests(incomingFriendsRequests);
         userDto.setOutgoingFriendRequests(outgoingFriendsRequests);
 
@@ -96,7 +133,7 @@ public class TransferToDto {
         BlockedUserDto blockedUserDto = new BlockedUserDto(
                 blockedUser.getUserId(),
                 blockedUser.getBlockedUserId(),
-                TransferToDto.UserInfoDto(blockedUser.getBlockedUser()),
+                TransferToDto.getUserInfoDto(blockedUser.getBlockedUser()),
                 blockedUser.getBlockTime());
 
         return blockedUserDto;
@@ -108,8 +145,8 @@ public class TransferToDto {
                 friendRequest.getToUserId(),
                 friendRequest.getSendTime(),
                 friendRequest.getAcceptTime(),
-                TransferToDto.UserInfoDto(friendRequest.getFromUser()),
-                TransferToDto.UserInfoDto(friendRequest.getToUser())
+                TransferToDto.getUserInfoDto(friendRequest.getFromUser()),
+                TransferToDto.getUserInfoDto(friendRequest.getToUser())
         );
 
         return friendRequestDto;
@@ -143,20 +180,32 @@ public class TransferToDto {
     }
 
     public static WatchedChatDto getWatchedChatDto(WatchedChat watchedChat) {
+        SortedSet<UserInfoDto> userDtos = new TreeSet<>();
+
+        for (WatchedChat chatOfUser : watchedChat.getChat().getWatchedChats()) {
+            userDtos.add(getUserInfoDto(chatOfUser.getUser()));
+        }
+
+        SortedSet<MessageDto> messageDtos = new TreeSet<>();
+        for (Message message : watchedChat.getWatchedMessages()) {
+            messageDtos.add(TransferToDto.getMessageDto(message));
+        }
+
         WatchedChatDto watchedChatDto = new WatchedChatDto(
-                watchedChat.getChatId(),
-                watchedChat.getUserId(),
+                watchedChat.getChat().getId(),
+                watchedChat.getUser().getId(),
                 watchedChat.getName(),
                 watchedChat.getSyncTime(),
                 watchedChat.isAdmin(),
                 watchedChat.isBlocked(),
-                TransferToDto.getChatDto(watchedChat.getChat()));
+                messageDtos,
+                userDtos);
 
         return watchedChatDto;
     }
 
     public static ChatDto getChatDto(Chat chat) {
-        Set<MessageDto> messageDtos = new HashSet<>();
+        SortedSet<MessageDto> messageDtos = new TreeSet<>();
         for (Message message : chat.getMessages()) {
             messageDtos.add(TransferToDto.getMessageDto(message));
         }
@@ -171,12 +220,24 @@ public class TransferToDto {
     }
 
     public static MessageDto getMessageDto(Message message) {
+
+        System.out.println("ФОРМИРУЕМ MESSAGE DTO -> TransferToDto -> 215");
+        System.out.println(message.getUser() + " USER сообщения");
+
         MessageDto messageDto = new MessageDto(
                 message.getId(),
                 message.getSendTime(),
                 message.getText(),
                 message.getReadTime(),
-                TransferToDto.UserInfoDto(message.getUser()));
+                message.getUser().getNickname()
+        );
         return messageDto;
+//        MessageDto messageDto = new MessageDto(
+//                message.getId(),
+//                message.getSendTime(),
+//                message.getText(),
+//                message.getReadTime(),
+//                TransferToDto.getUserInfoDto(message.getUser()));
+//        return messageDto;
     }
 }

@@ -1,16 +1,11 @@
 package com.serguni.messenger.dto.models;
 
-import com.serguni.messenger.dbms.models.Content;
-import com.serguni.messenger.dbms.models.Message;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-public class MessageDto implements Serializable {
+public class MessageDto implements Serializable, Comparable<MessageDto> {
     @Serial
     private static final long serialVersionUID = 1;
 
@@ -18,8 +13,8 @@ public class MessageDto implements Serializable {
     private Date sendTime;
     private String text;
     private Date readTime;
-    private ChatDto chat;
-    private UserInfoDto user;
+    private long chatId;
+    private String userSenderNickname;
     private Set<MessageDto> redirectedMessages;
     private Set<ContentDto> contents;
 
@@ -40,17 +35,23 @@ public class MessageDto implements Serializable {
 //        }
 //    }
 
+    public MessageDto(String text, long chatId, String userSenderNickname) {
+        this.text = text;
+        this.chatId = chatId;
+        this.userSenderNickname = userSenderNickname;
+    }
+
 
     public MessageDto(long id,
                       Date sendTime,
                       String text,
                       Date readTime,
-                      UserInfoDto user) {
+                      String userSenderNickname) {
         this.id = id;
         this.sendTime = sendTime;
         this.text = text;
         this.readTime = readTime;
-        this.user = user;
+        this.userSenderNickname = userSenderNickname;
     }
 
     public long getId() {
@@ -85,20 +86,20 @@ public class MessageDto implements Serializable {
         this.readTime = readTime;
     }
 
-    public ChatDto getChat() {
-        return chat;
+    public long getChatId() {
+        return chatId;
     }
 
-    public void setChat(ChatDto chat) {
-        this.chat = chat;
+    public void setChatId(long chatId) {
+        this.chatId = chatId;
     }
 
-    public UserInfoDto getUser() {
-        return user;
+    public String getUserSenderNickname() {
+        return userSenderNickname;
     }
 
-    public void setUser(UserInfoDto user) {
-        this.user = user;
+    public void setUserSenderNickname(String userSenderNickname) {
+        this.userSenderNickname = userSenderNickname;
     }
 
     public Set<MessageDto> getRedirectedMessages() {
@@ -115,6 +116,11 @@ public class MessageDto implements Serializable {
 
     public void setContents(Set<ContentDto> contents) {
         this.contents = contents;
+    }
+
+    @Override
+    public int compareTo(MessageDto o) {
+        return sendTime.compareTo(o.getSendTime());
     }
 }
 

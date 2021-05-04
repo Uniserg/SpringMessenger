@@ -1,15 +1,14 @@
 package com.serguni.messenger.components.sockets;
 
-import com.serguni.messenger.dbms.models.Configuration;
-import com.serguni.messenger.dbms.models.Session;
-import com.serguni.messenger.dbms.models.Tracking;
-import com.serguni.messenger.dbms.models.User;
+import com.serguni.messenger.components.security.SecretKeyGenerator;
+import com.serguni.messenger.dbms.models.*;
 import com.serguni.messenger.dto.SocketMessage;
 import com.serguni.messenger.dto.SocketMessage.MessageType;
 import com.serguni.messenger.dto.TransferToDto;
 import com.serguni.messenger.dto.models.ConfigurationDto;
+import com.serguni.messenger.dto.models.MessageDto;
 import com.serguni.messenger.dto.models.UserInfoDto;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import com.serguni.messenger.utils.CryptoUtil;
 
 import java.io.*;
 import java.net.Socket;
@@ -21,10 +20,6 @@ public class ListenerService extends Thread {
     private final Socket clientSocket;
     public final ObjectInputStream in;
     public final ObjectOutputStream out;
-//    private final SessionRepository sessionRepository;
-//    private final UserRepository userRepository;
-//    private final ConfigurationRepository configurationRepository;
-
 
     public ListenerService(Session session,
                            Socket socket,
@@ -38,38 +33,138 @@ public class ListenerService extends Thread {
 
     @Override
     public void run() {
+        for (WatchedChat watchedChat : session.getUser().getWatchedChats()) {
+            System.out.println(watchedChat.getWatchedMessages());
+        }
         System.out.println("СЛУШАТЕЛЬ ЗАПУЩЕН!");
         try {
             while (true) {
                 SocketMessage message = (SocketMessage) in.readObject();
 
+
                 switch (message.getType()) {
                     case SEARCH_USER -> findUsers((String) message.getBody());
+
                     case LOGOUT -> {
-                        logoutUser();
+                        System.out.println("ДО УДАЛЕНИЯ ИЗ USER_SESSION - LOGOUT - ListenerService - 46");
+                        System.out.println(Server.USERS_SESSIONS);
+//                        Server.USERS_SESSIONS.getSessionsByUserId(session.getUser().getId()).remove(session.getId());
+                        System.out.println("ПОСЛЕ УДАЛЕНИЯ ИЗ USER_SESSION - LOGOUT - ListenerService - 48");
+                        System.out.println(Server.USERS_SESSIONS);
+                        Server.deleteOtherSession(session, session.getId());
+
+                        if (!Server.USERS_SESSIONS.isOnlineByUserId(session.getUser().getId())) {
+                            Date lastOnline = new Date();
+                            session.getUser().setLastOnline(lastOnline);
+                            session.getUser().setSessions(null);
+                            Server.userRepository.save(session.getUser());
+                            Server.sendLastOnlineToTrackingUsers(session.getUser().getId(), lastOnline);
+                            //ПОСТАВИТЬ LAST ONLINE ПОЛЬЗОВАТЕЛЮ!!!
+                        }
+
+                        System.out.println(Server.USERS_SESSIONS + "ПОСЛЕ ВЫХОДА ИЗ СЕССИИ LISTENER SERVICE - 52");
                         return;
                     }
+
                     case EDIT_NAME -> {
                         String[] name = (String[]) message.getBody();
                         editName(name[0], name[1]);
                     }
-                    case EDIT_ABOUT_ME -> editAboutMe((String) message.getBody());
+
+                    case EDIT_ABOUT_ME ->  {
+                        editAboutMe((String) message.getBody());
+
+                    }
+
                     case EDIT_AVATAR -> editAvatar((byte[]) message.getBody());
 
+
                     case EDIT_CONFIGURATION -> editConfiguration((ConfigurationDto) message.getBody());
+
                     case DELETE_ALL_OTHER_SESSIONS -> Server.deleteAllOtherSessions(session, this);
+
                     case DELETE_OTHER_SESSION -> Server.deleteOtherSession(session, (long)message.getBody());
+
+                    case CHAT_MESSAGE -> {
+
+                        Object[] objects = (Object[]) message.getBody();
+                        MessageDto messageDto = (MessageDto) objects[0];
+
+                        long otherUserId = (long) objects[1];
+                        long userId = session.getUser().getId();
+
+                        Chat chat;
+
+                        if (messageDto.getChatId() == -1) {
+                            PrivateChat existPrivateChat = Server.privateChatRepository.findFirstByUser1IdAndUser2IdOrUser2IdAndUser1Id(
+                                    userId,
+                                    otherUserId,
+                                    userId,
+                                    otherUserId
+                            );
+
+                            if (existPrivateChat == null) {
+                                chat = Server.createNewPrivateChat(session, otherUserId);
+
+                            } else {
+                                chat = existPrivateChat.getChat();
+                            }
+                        } else {
+                            chat = Server.chatRepository.findById(messageDto.getChatId()).orElse(null);
+                        }
+
+                        // создали сообщение!!!
+                        Message messageToAdd = new Message();
+                        messageToAdd.setChat(chat);
+                        messageToAdd.setText(messageDto.getText());
+                        messageToAdd.setSendTime(new Date());
+                        messageToAdd.setUser(session.getUser());
+                        Server.messageRepository.save(messageToAdd);
+
+                        for (WatchedChat watchedChat : chat.getWatchedChats()) {
+                            Set<Message> messages = watchedChat.getWatchedMessages();
+                            if (messages == null)
+                                messages = new HashSet<>();
+
+                            messages.add(messageToAdd);
+                            Server.watchedChatRepository.save(watchedChat);
+
+                            if (Server.USERS_SESSIONS.isOnlineByUserId(watchedChat.getUser().getId())) {
+                                for (ListenerService listenerService : Server.USERS_SESSIONS.getSessionsByUserId(watchedChat.getUser().getId()).values()) {
+
+                                    long senTo = (watchedChat.getUser().getId() == userId) ? otherUserId : userId;
+
+                                    SocketMessage socketMessage = new SocketMessage(MessageType.CHAT_MESSAGE,
+                                            new Object[] {senTo, TransferToDto.getMessageDto(messageToAdd)});
+                                    listenerService.out.writeObject(socketMessage);
+                                }
+                            }
+                        }
+                        System.out.println(chat.getWatchedChats() + "ВСЕ ОТСЛЕЖИВАЮЩИЕ ЧАТЫ");
+                        //создали сообщение!!!
+
+                        System.out.println("ПОЛЬЗОВАТЕЛЬ ПРИСЛАЛ СООБЩЕНИЕ ДРУГОМУ ПОЛЬЗОВАТЕЛЮ");
+                        System.out.println(messageDto.getText());
+
+                        // РАССЫЛАЕМ ВСЕМ.
+                    }
                 }
-
-//                if (message.getType() == SocketMessage.MessageType.SEARCH_USER) {
-//                    findUsers((String) message.getBody());
-//                }
-
             }
 
         }
-//        catch (NullPointerException e) {
-//            sessionRepository.deleteById(session.getId());
+        catch (IOException e) {
+            Server.exit(this);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+//            System.out.println("Пользователь отключился");
+//            try {
+//                session.setLastOnline(new Date());
+//                Server.sessionRepository.save(session);
+//            } catch (ObjectOptimisticLockingFailureException ignored) {
+//                //ЗДЕСЬ ВОЗНИКАЕТ ОШИБКА КОГДА МЫ УДАЛЯЕМ СЕССИЮ А ДРУГОЙ ПЫТАЕТСЯ ЕЕ СОХРАНИТЬ ПРИ СБРОСЕ
+//            }
 //
 //            try {
 //                clientSocket.close();
@@ -77,40 +172,22 @@ public class ListenerService extends Thread {
 //                ioException.printStackTrace();
 //            }
 //
-//            System.out.println("Пользователь вышел");
-//            Server.CLIENT_SESSIONS.remove(session);
+//            Server.USERS_SESSIONS.removeSessionWithUser(session);
+//            Server.trackingRepository.deleteAllTrackedUsersByTrackingSessionsId(session.getId());
 //
+//            // ОТПРАВКА СООБЩЕНИЯ ЧТО ПОЛЬЗОВАТЕЛЬ ВЫШЕЛ
+//            if (!Server.USERS_SESSIONS.isOnlineByUserId(session.getUser().getId())) {
+//                User user = Server.userRepository.findById(session.getUser().getId()).orElse(null);
+//                // ВОЗМОЖНА ОШИБКА
+//                assert user != null;
+//                Server.sendLastOnline(user.getId(), session.getLastOnline());
+////                Server.sendUserStatus(user, session.getLastOnline());
+//            }
+//
+//            System.out.println("УДАЛИЛИ ОТСЛЕЖИВАЕМЫЕ ОБЪЕКТЫ");
+//        } catch (ClassNotFoundException e) {
+//            e.printStackTrace();
 //        }
-        catch (IOException e) {
-
-            System.out.println("Пользователь отключился");
-            try {
-                session.setLastOnline(new Date());
-                Server.sessionRepository.save(session);
-            } catch (ObjectOptimisticLockingFailureException ignored) {
-                //ЗДЕСЬ ВОЗНИКАЕТ ОШИБКА КОГДА МЫ УДАЛЯЕМ СЕССИЮ А ДРУГОЙ ПЫТАЕТСЯ ЕЕ СОХРАНИТЬ ПРИ СБРОСЕ
-            }
-            try {
-                clientSocket.close();
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
-
-            Server.USERS_SESSIONS.removeSessionWithUser(session);
-            Server.trackingRepository.deleteAllTrackedUsersByTrackingSessionsId(session.getId());
-
-            // ОТПРАВКА СООБЩЕНИЯ ЧТО ПОЛЬЗОВАТЕЛЬ ВЫШЕЛ
-            if (!Server.USERS_SESSIONS.isOnlineByUserId(session.getUser().getId())) {
-                User user = Server.userRepository.findById(session.getUser().getId()).orElse(null);
-                // ВОЗМОЖНА ОШИБКА
-
-                Server.sendUserStatus(user, session.getLastOnline());
-            }
-
-            System.out.println("УДАЛИЛИ ОТСЛЕЖИВАЕМЫЕ ОБЪЕКТЫ");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
     }
 
     private void findUsers(String userNick) throws IOException {
@@ -131,12 +208,10 @@ public class ListenerService extends Thread {
 
                 Server.trackingRepository.save(new Tracking(user.getId(), session.getUser().getId(), session.getId()));
 
-                UserInfoDto userInfoDto = TransferToDto.UserInfoDto(configuration.getUser());
+                UserInfoDto userInfoDto = TransferToDto.getUserInfoDto(configuration.getUser());
 
                 if (Server.USERS_SESSIONS.isOnlineByUserId(user.getId())) {
                     userInfoDto.setLastOnline(new Date(0));
-                } else {
-                    userInfoDto.setLastOnline(Server.sessionRepository.getLastOnlineOfUser(user.getId()));
                 }
 
                 System.out.println(userInfoDto.getLastOnline());
@@ -175,7 +250,7 @@ public class ListenerService extends Thread {
             user.setAboutMe(aboutMe);
 
             //ИЗМЕНЕНИЕ О СЕБЕ ОТПРАВЛЯЕМ СРАЗУ ВСЕМ
-            Server.sendUserStatus(user, new Date(0));
+            Server.sendAboutMe(user.getId(), aboutMe);
 
             Server.userRepository.save(user);
         });
@@ -193,11 +268,11 @@ public class ListenerService extends Thread {
             user.setLastName(lastName);
             user.setFirstName(firstName);
 
-
             //ИЗМЕНЕНИЕ ИМЕНИ ОТПРАВЛЯЕМ СРАЗУ ВСЕМ
-            Server.sendUserStatus(user, new Date(0));
+//            Server.sendUserStatus(user, new Date(0));
 
             Server.userRepository.save(user);
+            Server.sendEditName(session.getUser().getId(), lastName, firstName);
         });
 
 //        thread.setDaemon(true);
@@ -209,16 +284,20 @@ public class ListenerService extends Thread {
             User user = Server.userRepository.findById(session.getUser().getId()).orElse(null);
             assert user != null;
             user.setAvatar(avatar);
-
-            Server.sendUserStatus(user, new Date(0));
             System.out.println("ОТПРАВИЛИ");
             System.out.println("МЫ ТУТ - ЭТО РАБОТАЕТ");
             Server.userRepository.save(user);
+
+            Server.sendAvatar(user.getId(), avatar);
         });
 
 
         thread.setDaemon(true);
         thread.start();
+    }
+
+    private void createNewPrivateChat(long otherUser) {
+        Server.createNewPrivateChat(session.getUser(), otherUser);
     }
 
     private void logoutUser() {
@@ -243,7 +322,11 @@ public class ListenerService extends Thread {
         }
     }
 
-//    private void send(SocketMessage message) {
+    public Session getSession() {
+        return session;
+    }
+
+    //    private void send(SocketMessage message) {
 //        try {
 //        } catch (IOException ignored) {
 //        }

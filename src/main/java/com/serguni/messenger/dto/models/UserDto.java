@@ -1,7 +1,8 @@
 package com.serguni.messenger.dto.models;
 
 import java.io.Serial;
-import java.util.List;
+import java.util.Date;
+import java.util.Map;
 import java.util.Set;
 
 public class UserDto extends UserInfoDto {
@@ -11,7 +12,9 @@ public class UserDto extends UserInfoDto {
     private Set<SessionDto> sessions;
     private Set<UserInfoDto> friends;
     private ConfigurationDto configuration;
-    private Set<WatchedChatDto> watchedChats;
+//    private Set<WatchedChatDto> watchedChats;
+    private Map<UserInfoDto, WatchedChatDto> watchedPrivateChats;
+    private Map<GroupDto, WatchedChatDto> watchedGroupChats;
 //    private List<TemporaryKeyDto> temporaryKeys;
     private Set<BlockedUserDto> blockedUsers;
     private Set<FriendRequestDto> incomingFriendRequests;
@@ -25,8 +28,9 @@ public class UserDto extends UserInfoDto {
                    String firstName,
                    String lastName,
                    String aboutMe,
-                   byte[] avatar) {
-        super(id, nickname, email, firstName, lastName, aboutMe, avatar);
+                   byte[] avatar,
+                   Date lastOnline) {
+        super(id, nickname, email, firstName, lastName, aboutMe, avatar, lastOnline);
     }
 
     public UserDto(String nickname, String email, String firstName, String lastName, String aboutMe) {
@@ -97,15 +101,23 @@ public class UserDto extends UserInfoDto {
         this.configuration = configuration;
     }
 
-    public Set<WatchedChatDto> getWatchedChats() {
-        return watchedChats;
+    public Map<UserInfoDto, WatchedChatDto> getWatchedPrivateChats() {
+        return watchedPrivateChats;
     }
 
-    public void setWatchedChats(Set<WatchedChatDto> watchedChats) {
-        this.watchedChats = watchedChats;
+    public void setWatchedPrivateChats(Map<UserInfoDto, WatchedChatDto> watchedPrivateChats) {
+        this.watchedPrivateChats = watchedPrivateChats;
     }
 
-//    public List<TemporaryKeyDto> getTemporaryKeys() {
+    public Map<GroupDto, WatchedChatDto> getWatchedGroupChats() {
+        return watchedGroupChats;
+    }
+
+    public void setWatchedGroupChats(Map<GroupDto, WatchedChatDto> watchedGroupChats) {
+        this.watchedGroupChats = watchedGroupChats;
+    }
+
+    //    public List<TemporaryKeyDto> getTemporaryKeys() {
 //        return temporaryKeys;
 //    }
 //
@@ -143,7 +155,8 @@ public class UserDto extends UserInfoDto {
                 "sessions=" + sessions +
                 ", friends=" + friends +
                 ", configuration=" + configuration +
-                ", watchedChats=" + watchedChats +
+                ", watchedPrivateChats=" + watchedPrivateChats +
+                ", watchedGroupChats=" + watchedGroupChats +
                 ", blockedUsers=" + blockedUsers +
                 ", incomingFriendRequests=" + incomingFriendRequests +
                 ", outgoingFriendRequests=" + outgoingFriendRequests +

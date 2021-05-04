@@ -46,7 +46,7 @@ public class SessionCollection {
 
     public void removeSessionWithUser(Session session) {
         Map<Long, ListenerService> sessionsByUserId = usersSessions.get(session.getUser().getId());
-        sessionsByUserId.remove(session.getId());
+        sessionsByUserId.remove(session.getId()).closeSocket();
         if (sessionsByUserId.isEmpty())
             usersSessions.remove(session.getUser().getId());
     }
