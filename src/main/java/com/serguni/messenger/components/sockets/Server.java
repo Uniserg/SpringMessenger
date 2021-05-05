@@ -1,7 +1,6 @@
 package com.serguni.messenger.components.sockets;
 
 import com.serguni.messenger.components.collections.SessionCollection;
-import com.serguni.messenger.components.security.GenerationKeyService;
 import com.serguni.messenger.components.security.SecretKeyGenerator;
 import com.serguni.messenger.dbms.models.*;
 import com.serguni.messenger.dbms.repositories.*;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Component;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.*;
 
 @Component
@@ -433,16 +431,17 @@ public class Server extends Thread {
                         session.setLastOnline(new Date(0));
 
                         User user = userRepository.findById(session.getUser().getId()).orElse(null);
+                        assert user != null;
+                        long userId = user.getId();
+                        long sessionId = session.getId();
 
-                        System.out.println("ПРОВЕРКА ЧАТОВ");
-                        System.out.println(user.getWatchedChats().size());
-
-                        Map<Long, ListenerService> userSessions = USERS_SESSIONS.getSessionsByUserId(user.getId());
+                        Map<Long, ListenerService> userSessions = USERS_SESSIONS.getSessionsByUserId(userId);
 
                         if  (userSessions != null) {
-                            for (ListenerService listenerService : USERS_SESSIONS.getSessionsByUserId(user.getId()).values()) {
+                            for (ListenerService listenerService : USERS_SESSIONS.getSessionsByUserId(userId).values()) {
                                 Session otherUserSession = listenerService.getSession();
                                 //МАГИЯ ХЭШЕЙ
+                                // ДОБАВЛЕНИЕ АКТУАЛЬНЫХ ДАННЫХ О СЕССИЯХ
                                 user.getSessions().remove(otherUserSession);
                                 user.getSessions().add(otherUserSession);
                             }
@@ -453,11 +452,22 @@ public class Server extends Thread {
                             watchedChats.remove(watchedChat);
 
                             for (WatchedChat otherWatchedChats : watchedChats) {
+                                long otherUserId = otherWatchedChats.getUser().getId();
+
                                 trackingRepository.save(new Tracking(
-                                        otherWatchedChats.getUser().getId(),
-                                        user.getId(),
-                                        session.getId()
+                                        otherUserId,
+                                        userId,
+                                        sessionId
                                 ));
+
+//                                if (USERS_SESSIONS.isOnlineByUserId(otherUserId)) {
+//                                    for (long sessionOtherUserId : USERS_SESSIONS.getSessionsByUserId(otherUserId).keySet()) {
+//                                        trackingRepository.save(new Tracking(
+//                                                userId,
+//                                                otherUserId,
+//                                                sessionOtherUserId));
+//                                    }
+//                                }
                             }
                         }
 
@@ -465,12 +475,12 @@ public class Server extends Thread {
                         out.writeObject(new SocketMessage(MessageType.LOGIN, TransferToDto.getUserDto(user)));
 
                         //ОТПРАВЛЯЕМ ВСЕМ ЧТО ПОЛЬЗОВАТЕЛЬ ONLINE
-                        if (!Server.USERS_SESSIONS.isOnlineByUserId(session.getUser().getId())) {
+                        if (!Server.USERS_SESSIONS.isOnlineByUserId(userId)) {
                             System.out.println("ОТПРАВЛЯЕМ ONLINE");
-                            sendLastOnlineToTrackingUsers(user.getId(), new Date(0));
+                            sendLastOnlineToTrackingUsers(userId, new Date(0));
                         }
 
-                        sendLastOnlineToOtherUserSessions(user.getId(), session.getId(), new Date(0));
+                        sendLastOnlineToOtherUserSessions(userId, sessionId, new Date(0));
 
                         ListenerService listenerService = new ListenerService(session, socketListen, objectIs, out);
                         USERS_SESSIONS.addSession(session, listenerService);

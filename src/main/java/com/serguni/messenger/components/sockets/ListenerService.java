@@ -48,7 +48,6 @@ public class ListenerService extends Thread {
                     case LOGOUT -> {
                         System.out.println("ДО УДАЛЕНИЯ ИЗ USER_SESSION - LOGOUT - ListenerService - 46");
                         System.out.println(Server.USERS_SESSIONS);
-//                        Server.USERS_SESSIONS.getSessionsByUserId(session.getUser().getId()).remove(session.getId());
                         System.out.println("ПОСЛЕ УДАЛЕНИЯ ИЗ USER_SESSION - LOGOUT - ListenerService - 48");
                         System.out.println(Server.USERS_SESSIONS);
                         Server.deleteOtherSession(session, session.getId());
@@ -59,7 +58,6 @@ public class ListenerService extends Thread {
                             session.getUser().setSessions(null);
                             Server.userRepository.save(session.getUser());
                             Server.sendLastOnlineToTrackingUsers(session.getUser().getId(), lastOnline);
-                            //ПОСТАВИТЬ LAST ONLINE ПОЛЬЗОВАТЕЛЮ!!!
                         }
 
                         System.out.println(Server.USERS_SESSIONS + "ПОСЛЕ ВЫХОДА ИЗ СЕССИИ LISTENER SERVICE - 52");
