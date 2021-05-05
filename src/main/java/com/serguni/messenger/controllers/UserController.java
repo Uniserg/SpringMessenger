@@ -1,13 +1,10 @@
 package com.serguni.messenger.controllers;
 
-import com.google.gson.Gson;
 import com.serguni.messenger.components.security.GenerationKeyService;
-import com.serguni.messenger.components.security.SecretKeyGenerator;
 import com.serguni.messenger.dbms.models.Configuration;
 import com.serguni.messenger.dbms.models.User;
 import com.serguni.messenger.dbms.repositories.TemporaryKeyRepository;
 import com.serguni.messenger.dbms.repositories.UserRepository;
-import com.serguni.messenger.utils.CryptoUtil;
 import com.serguni.messenger.utils.RegExValidUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

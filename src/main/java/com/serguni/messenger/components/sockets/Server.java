@@ -1,7 +1,7 @@
 package com.serguni.messenger.components.sockets;
 
 import com.serguni.messenger.components.collections.SessionCollection;
-import com.serguni.messenger.components.security.SecretKeyGenerator;
+import com.serguni.messenger.components.security.KeyGenerator;
 import com.serguni.messenger.dbms.models.*;
 import com.serguni.messenger.dbms.repositories.*;
 import com.serguni.messenger.dto.SessionCookie;
@@ -236,8 +236,8 @@ public class Server extends Thread {
         if (otherUser == null)
             return;
 
-        SecretKeyGenerator secretKeyGenerator = new SecretKeyGenerator();
-        String secretKey = CryptoUtil.createHash(secretKeyGenerator.getSecretKey());
+        KeyGenerator keyGenerator = new KeyGenerator();
+        String secretKey = CryptoUtil.createHash(keyGenerator.getSecretKey());
         long chatId = chatRepository.getNextId();
 
         Chat chat = new Chat(chatId, secretKey);
@@ -286,7 +286,7 @@ public class Server extends Thread {
         User otherUser = userRepository.findById(otherUserId).orElse(null);
 
         Chat chat = new Chat();
-        chat.setSecretKey(CryptoUtil.createHash(new SecretKeyGenerator().getSecretKey()));
+        chat.setSecretKey(CryptoUtil.createHash(new KeyGenerator().getSecretKey()));
         chat = chatRepository.save(chat);
 
         PrivateChat privateChat = new PrivateChat();

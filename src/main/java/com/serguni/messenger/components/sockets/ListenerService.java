@@ -1,6 +1,5 @@
 package com.serguni.messenger.components.sockets;
 
-import com.serguni.messenger.components.security.SecretKeyGenerator;
 import com.serguni.messenger.dbms.models.*;
 import com.serguni.messenger.dto.SocketMessage;
 import com.serguni.messenger.dto.SocketMessage.MessageType;
@@ -8,7 +7,6 @@ import com.serguni.messenger.dto.TransferToDto;
 import com.serguni.messenger.dto.models.ConfigurationDto;
 import com.serguni.messenger.dto.models.MessageDto;
 import com.serguni.messenger.dto.models.UserInfoDto;
-import com.serguni.messenger.utils.CryptoUtil;
 
 import java.io.*;
 import java.net.Socket;

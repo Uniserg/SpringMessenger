@@ -11,7 +11,6 @@ public class MailProperties {
     public final static String MAIL_FROM = System.getenv("MAIL_FROM");
     private final static String MAIL_PASSWORD = System.getenv("MAIL_PASSWORD");
 
-//    @Bean
     public JavaMailSender getJavaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
 
