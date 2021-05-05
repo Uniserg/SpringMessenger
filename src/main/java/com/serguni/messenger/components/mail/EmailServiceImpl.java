@@ -13,7 +13,6 @@ import java.io.File;
 @Component
 public class EmailServiceImpl implements EmailService {
 
-//    @Autowired
     private final JavaMailSender emailSender = new MailProperties().getJavaMailSender();
 
     private final static String MAIL_PUBLIC = System.getenv("MAIL_PUBLIC");
