@@ -22,8 +22,6 @@ public class SessionCollection {
             sessionsByUserId.put(session.getId(), listenerService);
 
             usersSessions.put(session.getUser().getId(), sessionsByUserId);
-
-            System.out.println("ПОСЛЕ ДОБАВЛЕНИЯ СЕССИИ");
         } else {
             sessionsByUserId.put(session.getId(), listenerService);
         }
