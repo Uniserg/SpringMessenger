@@ -249,11 +249,11 @@ public class Server extends Thread {
             watchedChatName = otherUser.getNickname();
 
         WatchedChat watchedChat = new WatchedChat(
+                new WatchedChat.WatchedChatPK(chat.getId(), user.getId()),
                 watchedChatName,
                 new Date(),
                 false,
-                false,
-                chat
+                false
         );
 
         //ТОТ КТО СОЗДАЛ
@@ -322,12 +322,6 @@ public class Server extends Thread {
         watchedChatRepository.save(watchedChatUser);
         watchedChatRepository.save(watchedChatOtherUser);
 
-//        watchedChatUser.setChat(chat);
-//        watchedChatUser.setUser(session.getUser());
-//
-//        watchedChatOtherUser.setChat(chat);
-//        watchedChatOtherUser.setUser(otherUser);
-
         watchedChatUser = watchedChatRepository.findById(watchedChatUser.getWatchedChatPK()).orElse(null);
         watchedChatOtherUser = watchedChatRepository.findById(watchedChatOtherUser.getWatchedChatPK()).orElse(null);
 
@@ -355,45 +349,6 @@ public class Server extends Thread {
 
         return chatRepository.findById(chat.getId()).orElse(null);
     }
-
-
-//    public static void sendUserStatus(User user, Date lastOnline) {
-//
-//        UserInfoDto userInfoDto = TransferToDto.UserInfoDto(user);
-//        userInfoDto.setLastOnline(lastOnline);
-//        SocketMessage socketMessage = new SocketMessage(MessageType.UPDATE_TRACKING_USER, userInfoDto);
-//
-//        Map<Long, ListenerService> sessionsOfCurrentUser = USERS_SESSIONS.getSessionsByUserId(user.getId());
-//
-////        System.out.println("Server -> 95 -> СМОТРИМ СЕССИ ПОЛЬЗОВАТЕЛЯ ПЕРЕД ОТПРАВКОЙ ИЗМ. ПОЛЬЗОВАТЕЛЯ");
-////        System.out.println(sessionsOfCurrentUser);
-//
-//        if (sessionsOfCurrentUser != null) {
-//            for (ListenerService listenerService : sessionsOfCurrentUser.values()) {
-//                try {
-//                    listenerService.out.writeObject(socketMessage);
-//                } catch (IOException info) {
-//                    info.printStackTrace();
-//                }
-//            }
-//        }
-//
-//        Set<long[]> trackingUsersByTrackedUserId = trackingRepository.getTrackingSessionsIdsByTrackedUserId(user.getId());
-//        if (trackingUsersByTrackedUserId == null)
-//            return;
-//
-//        System.out.println(trackingUsersByTrackedUserId);
-//        System.out.println(USERS_SESSIONS);
-//        for (long[] longs : trackingUsersByTrackedUserId) {
-//            System.out.println(longs[0] + " " + longs[1]);
-//            ListenerService listenerService = USERS_SESSIONS.getSessionByUserIdAndId(longs[0], longs[1]);
-//            try {
-//                listenerService.out.writeObject(socketMessage);
-//            } catch (IOException info) {
-//                info.printStackTrace();
-//            }
-//        }
-//    }
 
     @Override
     public void run() {

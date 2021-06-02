@@ -238,14 +238,17 @@ public class ListenerService extends Thread {
 
     private void editAvatar(byte[] avatar) {
         Thread thread = new Thread(() -> {
-            User user = Server.userRepository.findById(session.getUser().getId()).orElse(null);
-            assert user != null;
-            user.setAvatar(avatar);
-            System.out.println("ОТПРАВИЛИ");
-            System.out.println("МЫ ТУТ - ЭТО РАБОТАЕТ");
-            Server.userRepository.save(user);
+            long userId = session.getUser().getId();
 
-            Server.sendAvatar(user.getId(), avatar);
+            Server.userRepository.updateAvatarById(userId, avatar);
+//            User user = Server.userRepository.findById(session.getUser().getId()).orElse(null);
+//            assert user != null;
+//            user.setAvatar(avatar);
+//            System.out.println("ОТПРАВИЛИ");
+//            System.out.println("МЫ ТУТ - ЭТО РАБОТАЕТ");
+//            Server.userRepository.save(user);
+
+            Server.sendAvatar(userId, avatar);
         });
 
 

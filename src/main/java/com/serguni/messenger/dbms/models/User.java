@@ -44,7 +44,7 @@ public class User implements Serializable {
     @Column(name = "about_me")
     private String aboutMe;
 
-    private byte[] avatar;
+//    private byte[] avatar;
 
     @JsonIgnore
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
@@ -109,14 +109,12 @@ public class User implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id == user.id && nickname.equals(user.nickname) && email.equals(user.email) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(aboutMe, user.aboutMe) && Arrays.equals(avatar, user.avatar);
+        return id == user.id && nickname.equals(user.nickname) && email.equals(user.email) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(aboutMe, user.aboutMe) && lastOnline.equals(user.lastOnline);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(id, nickname, email, firstName, lastName, aboutMe);
-        result = 31 * result + Arrays.hashCode(avatar);
-        return result;
+        return Objects.hash(id, nickname, email, firstName, lastName, aboutMe, lastOnline);
     }
 
     public Date getLastOnline() {
@@ -175,13 +173,13 @@ public class User implements Serializable {
         this.aboutMe = aboutMe;
     }
 
-    public byte[] getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(byte[] avatar) {
-        this.avatar = avatar;
-    }
+//    public byte[] getAvatar() {
+//        return avatar;
+//    }
+//
+//    public void setAvatar(byte[] avatar) {
+//        this.avatar = avatar;
+//    }
 
     public Set<Session> getSessions() {
         return sessions;

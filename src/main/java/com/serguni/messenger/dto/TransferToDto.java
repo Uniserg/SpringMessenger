@@ -19,6 +19,7 @@ public class TransferToDto {
     }
 
     public static UserInfoDto getUserInfoDto(User user) {
+        byte[] avatar = Server.userRepository.getAvatarById(user.getId());
         UserInfoDto userInfoDto = new UserInfoDto(
                 user.getId(),
                 user.getNickname(),
@@ -26,7 +27,7 @@ public class TransferToDto {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getAboutMe(),
-                user.getAvatar(),
+                avatar,
                 user.getLastOnline()
         );
         return userInfoDto;
@@ -37,6 +38,7 @@ public class TransferToDto {
         System.out.println("TRANSFER TO DTO - 36 - ПРОВЕРКА ЧАТОВ");
         System.out.println(user.getWatchedChats().size());
 
+        byte[] avatar = Server.userRepository.getAvatarById(user.getId());
         UserDto userDto = new UserDto(
                 user.getId(),
                 user.getNickname(),
@@ -44,7 +46,7 @@ public class TransferToDto {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getAboutMe(),
-                user.getAvatar(),
+                avatar,
                 user.getLastOnline());
 
         Set<SessionDto> sessions = null;

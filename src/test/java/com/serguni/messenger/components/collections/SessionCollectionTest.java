@@ -22,12 +22,16 @@ class SessionCollectionTest {
         Session session = new Session();
         session.setUser(user);
         session.setId(1);
-        sessionCollection.addSession(session, new ListenerService(session, new Socket(), null, null));
+        sessionCollection.addSession(
+                session,
+                new ListenerService(session, new Socket(), null, null));
 
         Session session1 = new Session();
         session1.setUser(user);
         session1.setId(2);
-        sessionCollection.addSession(session1, new ListenerService(session, new Socket(), null, null));
+        sessionCollection.addSession(
+                session1,
+                new ListenerService(session, new Socket(), null, null));
 
         assertEquals(1, sessionCollection.size());
 

@@ -10,14 +10,14 @@ public class UserInfoDto implements Serializable, Comparable<UserInfoDto> {
     @Serial
     private static final long serialVersionUID = 1;
 
-    private long id;
-    private String nickname;
-    private String email;
-    private String firstName;
-    private String lastName;
-    private String aboutMe;
-    private Date lastOnline;
-    private byte[] avatar;
+    protected long id;
+    protected String nickname;
+    protected String email;
+    protected String firstName;
+    protected String lastName;
+    protected String aboutMe;
+    protected Date lastOnline;
+    protected byte[] avatar;
 
     public UserInfoDto(long id,
                        String nickname,

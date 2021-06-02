@@ -1,11 +1,14 @@
 package com.serguni.messenger.dto.models;
 
+import com.serguni.messenger.dbms.models.User;
+
 import java.io.Serial;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
 public class UserDto extends UserInfoDto {
+
     @Serial
     private static final long serialVersionUID = 1;
 
@@ -37,45 +40,45 @@ public class UserDto extends UserInfoDto {
         super(nickname, email, firstName, lastName, aboutMe);
     }
 
-    //    public UserDto(User user) {
-//        id = user.getId();
-//        nickname = user.getNickname();
-//        email = user.getEmail();
-//        firstName = user.getFirstName();
-//        lastName = user.getLastName();
-//        aboutMe = user.getAboutMe();
-//        avatar = user.getAvatar();
-//        sessions = new ArrayList<>();
-//        for (Session session : user.getSessions()) {
-//            sessions.add(new SessionDto(session));
-//        }
-//        friends = new HashSet<>();
-//        for (User friend : user.getFriends()){
-//            friends.add(new UserDto(friend));
-//        }
-//        configuration = new ConfigurationDto(user.getConfiguration());
-//        watchedChats = new HashSet<>();
-//        for (WatchedChat watchedChat : user.getWatchedChats()) {
-//            watchedChats.add(new WatchedChatDto(watchedChat));
-//        }
-//        temporaryKeys = new ArrayList<>();
-//        for (TemporaryKey temporaryKey : user.getTemporaryKeys()) {
-//            temporaryKeys.add(new TemporaryKeyDto(temporaryKey));
-//        }
-//        blockedUsers = new HashSet<>();
-//        for (BlockedUser blockedUser : user.getBlockedUsers()) {
-//            blockedUsers.add(new BlockedUserDto(blockedUser));
-//        }
-//        incomingFriendRequests = new ArrayList<>();
-//        for (FriendRequest friendRequest : user.getIncomingFriendRequests()) {
-//            incomingFriendRequests.add(new FriendRequestDto(friendRequest));
-//        }
-//        outgoingFriendRequests = new ArrayList<>();
-//        for (FriendRequest friendRequest : user.getOutgoingFriendRequests()) {
-//            outgoingFriendRequests.add(new FriendRequestDto(friendRequest));
-//        }
-//
+//    public UserDto(User user) {
+//    id = user.getId();
+//    nickname = user.getNickname();
+//    email = user.getEmail();
+//    firstName = user.getFirstName();
+//    lastName = user.getLastName();
+//    aboutMe = user.getAboutMe();
+//    avatar = user.getAvatar();
+//    sessions = new ArrayList<>();
+//    for (Session session : user.getSessions()) {
+//        sessions.add(new SessionDto(session));
 //    }
+//    friends = new HashSet<>();
+//    for (User friend : user.getFriends()){
+//        friends.add(new UserDto(friend));
+//    }
+//    configuration = new ConfigurationDto(user.getConfiguration());
+//    watchedChats = new HashSet<>();
+//    for (WatchedChat watchedChat : user.getWatchedChats()) {
+//        watchedChats.add(new WatchedChatDto(watchedChat));
+//    }
+//    temporaryKeys = new ArrayList<>();
+//    for (TemporaryKey temporaryKey : user.getTemporaryKeys()) {
+//        temporaryKeys.add(new TemporaryKeyDto(temporaryKey));
+//    }
+//    blockedUsers = new HashSet<>();
+//    for (BlockedUser blockedUser : user.getBlockedUsers()) {
+//        blockedUsers.add(new BlockedUserDto(blockedUser));
+//    }
+//    incomingFriendRequests = new ArrayList<>();
+//    for (FriendRequest friendRequest : user.getIncomingFriendRequests()) {
+//        incomingFriendRequests.add(new FriendRequestDto(friendRequest));
+//    }
+//    outgoingFriendRequests = new ArrayList<>();
+//    for (FriendRequest friendRequest : user.getOutgoingFriendRequests()) {
+//        outgoingFriendRequests.add(new FriendRequestDto(friendRequest));
+//    }
+//
+//}
 
     public Set<SessionDto> getSessions() {
         return sessions;
