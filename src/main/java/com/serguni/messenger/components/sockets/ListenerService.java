@@ -153,46 +153,12 @@ public class ListenerService extends Thread {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-
-//            System.out.println("Пользователь отключился");
-//            try {
-//                session.setLastOnline(new Date());
-//                Server.sessionRepository.save(session);
-//            } catch (ObjectOptimisticLockingFailureException ignored) {
-//                //ЗДЕСЬ ВОЗНИКАЕТ ОШИБКА КОГДА МЫ УДАЛЯЕМ СЕССИЮ А ДРУГОЙ ПЫТАЕТСЯ ЕЕ СОХРАНИТЬ ПРИ СБРОСЕ
-//            }
-//
-//            try {
-//                clientSocket.close();
-//            } catch (IOException ioException) {
-//                ioException.printStackTrace();
-//            }
-//
-//            Server.USERS_SESSIONS.removeSessionWithUser(session);
-//            Server.trackingRepository.deleteAllTrackedUsersByTrackingSessionsId(session.getId());
-//
-//            // ОТПРАВКА СООБЩЕНИЯ ЧТО ПОЛЬЗОВАТЕЛЬ ВЫШЕЛ
-//            if (!Server.USERS_SESSIONS.isOnlineByUserId(session.getUser().getId())) {
-//                User user = Server.userRepository.findById(session.getUser().getId()).orElse(null);
-//                // ВОЗМОЖНА ОШИБКА
-//                assert user != null;
-//                Server.sendLastOnline(user.getId(), session.getLastOnline());
-////                Server.sendUserStatus(user, session.getLastOnline());
-//            }
-//
-//            System.out.println("УДАЛИЛИ ОТСЛЕЖИВАЕМЫЕ ОБЪЕКТЫ");
-//        } catch (ClassNotFoundException e) {
-//            e.printStackTrace();
-//        }
     }
 
     private void findUsers(String userNick) throws IOException {
         new Thread(() -> {
             Server.trackingRepository.deleteAllTrackedUsersByTrackingSessionsId(session.getId());
             Server.trackingRepository.flush();
-
-//            List<User> users = userRepository.findByNicknameStartingWith(userNick);
-//            List<UserInfoDto> userInfoDtos = new ArrayList<>();
 
             Set<Configuration> configurations = Server.configurationRepository
                     .findByInvisibleEqualsAndUserNicknameStartingWith(false, userNick);
@@ -245,7 +211,6 @@ public class ListenerService extends Thread {
             assert user != null;
             user.setAboutMe(aboutMe);
 
-            //ИЗМЕНЕНИЕ О СЕБЕ ОТПРАВЛЯЕМ СРАЗУ ВСЕМ
             Server.sendAboutMe(user.getId(), aboutMe);
 
             Server.userRepository.save(user);
@@ -264,14 +229,10 @@ public class ListenerService extends Thread {
             user.setLastName(lastName);
             user.setFirstName(firstName);
 
-            //ИЗМЕНЕНИЕ ИМЕНИ ОТПРАВЛЯЕМ СРАЗУ ВСЕМ
-//            Server.sendUserStatus(user, new Date(0));
-
             Server.userRepository.save(user);
             Server.sendEditName(session.getUser().getId(), lastName, firstName);
         });
 
-//        thread.setDaemon(true);
         thread.start();
     }
 
@@ -321,11 +282,4 @@ public class ListenerService extends Thread {
     public Session getSession() {
         return session;
     }
-
-    //    private void send(SocketMessage message) {
-//        try {
-//        } catch (IOException ignored) {
-//        }
-//    }
-
 }

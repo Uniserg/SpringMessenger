@@ -3,7 +3,7 @@ package com.serguni.messenger.components.security;
 import java.util.Random;
 
 public class KeyGenerator {
-    private final static char[] CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789#@-_^/".toCharArray();
+    private final static char[] CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".toCharArray();
 
     public String getSecretKey() {
         int keyLen = 10;

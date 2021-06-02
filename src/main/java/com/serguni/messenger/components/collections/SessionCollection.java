@@ -56,54 +56,14 @@ public class SessionCollection {
         return sessionByUserId.containsKey(session.getId());
     }
 
+    public int size() {
+        return usersSessions.size();
+    }
+
     @Override
     public String toString() {
         return "SessionCollection{" +
                 "usersSessions=" + usersSessions.toString() +
                 '}';
     }
-
-    //    public void addTrackingSessionByTrackedUserId(long trackingSessionId, long trackedUserId) {
-//        trackedUsers.computeIfAbsent(trackedUserId, k -> new HashSet<>())
-//                .add(trackingSessionId);
-//    }
-//
-//    public void removeTrackingSessionByTrackedUserId(long trackingSessionId, long trackedUserId) {
-//        Set<Long> trackingSessionsByTrackedUserId = trackedUsers.get(trackedUserId);
-//
-//        trackingSessionsByTrackedUserId.remove(trackingSessionId);
-//        if (trackingSessionsByTrackedUserId.isEmpty())
-//            trackingSessions.remove(trackedUserId);
-//    }
-//
-//    public Set<Long> getTrackingSessionsByTrackedUserId(long trackedUserId) {
-//        return trackedUsers.get(trackedUserId);
-//    }
-//
-//    public void addTrackedUserByTrackingSessionId(long trackedUserId, long trackingSessionId) {
-//        trackingSessions.computeIfAbsent(trackingSessionId, k -> new HashSet<>())
-//                .add(trackedUserId);
-//    }
-//
-//    public void removeTrackedUserByTrackingSessionId(long trackedUserId, long trackingSessionId) {
-//        Set<Long> trackedUserByTrackingSession = trackingSessions.get(trackingSessionId);
-//
-//        trackedUserByTrackingSession.remove(trackedUserId);
-//        if (trackedUserByTrackingSession.isEmpty())
-//
-//
-//        trackingUsersByTrackedUserId.remove(trackingUserId);
-//        if (trackingUsersByTrackedUserId.isEmpty())
-//            trackedUsers.remove(trackedUserId);
-//    }
-//
-//    public Set<Long> getTrackingUsersByTrackedUserId(long trackedUserId) {
-//        return trackedUsers.get(trackedUserId);
-//    }
-//
-//    public void clearTrackedUsers(long trackingUserId) {
-//        for (long trackedUserId : trackingUsers.get(trackingUserId)) {
-//            trackedUsers.get(trackedUserId).remove(trackingUserId);
-//        }
-//    }
 }

@@ -32,9 +32,6 @@ public class Server extends Thread {
     public static MessageRepository messageRepository;
 
     public static final int PORT = 8081;
-//    public static final SessionCollection CLIENT_SESSIONS = new SessionCollection();
-
-//    public static final Map<Long, Map<Long, ListenerService>> USERS_SESSIONS = new HashMap<>();
     public static final SessionCollection USERS_SESSIONS = new SessionCollection();
 
     private static ServerSocket server;

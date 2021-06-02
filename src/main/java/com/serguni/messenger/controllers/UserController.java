@@ -46,7 +46,7 @@ public class UserController {
             GenerationKeyService generationKeyService = new GenerationKeyService(temporaryKeyRepository);
             generationKeyService.createKey(savedUser);
 
-            return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
+            return new ResponseEntity<>(savedUser.getId(), HttpStatus.CREATED);
         } else {
             return new ResponseEntity<>(warning, HttpStatus.OK);
         }
@@ -68,7 +68,7 @@ public class UserController {
         if (user != null) {
             GenerationKeyService generationKeyService = new GenerationKeyService(temporaryKeyRepository);
             generationKeyService.createKey(user);
-            return new ResponseEntity<>(user, HttpStatus.OK);
+            return new ResponseEntity<>(user.getId(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

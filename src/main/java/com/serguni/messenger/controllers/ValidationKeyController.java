@@ -19,13 +19,13 @@ import java.util.Date;
 @Controller
 public class ValidationKeyController {
     private final static long MAX_VALID_PERIOD = 60000;
-    private final TemporaryKeyRepository temporaryKeyRepository;
-    private final SessionRepository sessionRepository;
+    public static TemporaryKeyRepository temporaryKeyRepository;
+    public static SessionRepository sessionRepository;
 
     public ValidationKeyController(TemporaryKeyRepository temporaryKeyRepository,
                                    SessionRepository sessionRepository) {
-        this.temporaryKeyRepository = temporaryKeyRepository;
-        this.sessionRepository = sessionRepository;
+        ValidationKeyController.temporaryKeyRepository = temporaryKeyRepository;
+        ValidationKeyController.sessionRepository = sessionRepository;
     }
 
     @PostMapping("/valid/")
@@ -51,17 +51,10 @@ public class ValidationKeyController {
 
             String cookie = CryptoUtil.createHash(String.valueOf(sessionReq.hashCode()));
             sessionReq.setCookie(cookie);
-//            sessionReq.setUser(temporaryKey.getUser());
             sessionReq.setUser(temporaryKey.getUser());
 
             Session newSession = sessionRepository.save(sessionReq);
-
-            //РАССЫЛАЕМ О НОВОЙ СЕССИИ ВСЕМ
-            System.out.println(Server.USERS_SESSIONS + "ПРОВЕРКА ПЕРЕД ОТПРАВКОЙ VALID CONTROLLER - 60");
             Server.sendNewSession(newSession);
-
-            System.out.println("ОТПРАВЛЯЕМ ПО HTTP " + newSession);
-            System.out.println(newSession);
             return new ResponseEntity<>(new SessionCookie(newSession.getId(), newSession.getCookie()), HttpStatus.OK);
 
         } else {

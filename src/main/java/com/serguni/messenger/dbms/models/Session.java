@@ -1,5 +1,6 @@
 package com.serguni.messenger.dbms.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
@@ -22,19 +23,12 @@ public class Session implements Serializable {
             initialValue = 0,
             allocationSize = 1
     )
-//    @GeneratedValue(
-//            strategy = GenerationType.SEQUENCE,
-//            generator = "sessions_generator")
     private Long id;
 
-//    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "sign_in_time", nullable = false)
-//    @CreatedDate
     private Date signInTime;
 
     @Column(name = "last_online", nullable = false)
-//    @Temporal(TemporalType.TIMESTAMP)
-//    @CreatedDate
     private Date lastOnline;
 
     @Column(nullable = false)
@@ -50,6 +44,7 @@ public class Session implements Serializable {
 //    //ИСПОЛЬЗОВАТЬ ПРИ СОЗДАНИИ
     @ManyToOne(optional = false)
     @JoinColumn(name = "usr_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @Column(nullable = false, name = "is_active")
