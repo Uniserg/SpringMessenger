@@ -328,6 +328,9 @@ public class Server extends Thread {
         WatchedChatDto watchedChatUserDto = TransferToDto.getWatchedChatDto(watchedChatUser);
         WatchedChatDto watchedChatOtherUserDto = TransferToDto.getWatchedChatDto(watchedChatOtherUser);
 
+        System.out.println( "ВИДИМЫЙ ЧАТ ПОЛЬЗОВАТЕЛЯ OTHER " + watchedChatOtherUserDto);
+        System.out.println("ВИДИМЫЙ ЧАТ ПОЛЬЗОВАТЕЛЯ " + watchedChatUserDto);
+
         SocketMessage messageForUser = new SocketMessage(MessageType.CREATE_NEW_CHAT,
                 new Object[] {TransferToDto.getUserInfoDto(otherUser), watchedChatUserDto});
         SocketMessage messageForOtherUser = new SocketMessage(MessageType.CREATE_NEW_CHAT,
@@ -386,6 +389,8 @@ public class Server extends Thread {
                         assert user != null;
                         long userId = user.getId();
                         long sessionId = session.getId();
+
+                        System.out.println("Server -> 390 -> user" + user);
 
                         Map<Long, ListenerService> userSessions = USERS_SESSIONS.getSessionsByUserId(userId);
 

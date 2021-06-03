@@ -1,14 +1,7 @@
 package com.serguni.messenger.dto.models;
 
-import com.serguni.messenger.dbms.models.Chat;
-import com.serguni.messenger.dbms.models.Message;
-import com.serguni.messenger.dbms.models.WatchedChat;
-
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class ChatDto implements Serializable {
@@ -19,22 +12,6 @@ public class ChatDto implements Serializable {
     private String secretKey;
     private Set<MessageDto> messages;
     private Set<WatchedChatDto> watchedChats;
-
-//    public ChatDto(Chat chat) {
-//        id = chat.getId();
-//        secretKey = chat.getSecretKey();
-//
-//        messages = new HashSet<>();
-//        for (Message message : chat.getMessages()) {
-//            messages.add(new MessageDto(message));
-//        }
-//
-//        watchedChats = new HashSet<>();
-//        for (WatchedChat watchedChat : chat.getWatchedChats()) {
-//            watchedChats.add(new WatchedChatDto(watchedChat));
-//        }
-//    }
-
 
     public ChatDto(long id,
                    String secretKey) {

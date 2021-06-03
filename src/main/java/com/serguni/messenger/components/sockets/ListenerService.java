@@ -44,10 +44,6 @@ public class ListenerService extends Thread {
                     case SEARCH_USER -> findUsers((String) message.getBody());
 
                     case LOGOUT -> {
-                        System.out.println("ДО УДАЛЕНИЯ ИЗ USER_SESSION - LOGOUT - ListenerService - 46");
-                        System.out.println(Server.USERS_SESSIONS);
-                        System.out.println("ПОСЛЕ УДАЛЕНИЯ ИЗ USER_SESSION - LOGOUT - ListenerService - 48");
-                        System.out.println(Server.USERS_SESSIONS);
                         Server.deleteOtherSession(session, session.getId());
 
                         if (!Server.USERS_SESSIONS.isOnlineByUserId(session.getUser().getId())) {
@@ -92,7 +88,8 @@ public class ListenerService extends Thread {
                         Chat chat;
 
                         if (messageDto.getChatId() == -1) {
-                            PrivateChat existPrivateChat = Server.privateChatRepository.findFirstByUser1IdAndUser2IdOrUser2IdAndUser1Id(
+                            PrivateChat existPrivateChat = Server.privateChatRepository
+                                    .findFirstByUser1IdAndUser2IdOrUser2IdAndUser1Id(
                                     userId,
                                     otherUserId,
                                     userId,
@@ -239,39 +236,11 @@ public class ListenerService extends Thread {
     private void editAvatar(byte[] avatar) {
         Thread thread = new Thread(() -> {
             long userId = session.getUser().getId();
-
             Server.userRepository.updateAvatarById(userId, avatar);
-//            User user = Server.userRepository.findById(session.getUser().getId()).orElse(null);
-//            assert user != null;
-//            user.setAvatar(avatar);
-//            System.out.println("ОТПРАВИЛИ");
-//            System.out.println("МЫ ТУТ - ЭТО РАБОТАЕТ");
-//            Server.userRepository.save(user);
-
             Server.sendAvatar(userId, avatar);
         });
-
-
         thread.setDaemon(true);
         thread.start();
-    }
-
-    private void createNewPrivateChat(long otherUser) {
-        Server.createNewPrivateChat(session.getUser(), otherUser);
-    }
-
-    private void logoutUser() {
-        System.out.println("УДАЛЕНИЕ СЕССИИ");
-        System.out.println(session);
-        Server.sessionRepository.delete(session);
-//        sessionRepository.deleteAllInBatch();
-        Server.USERS_SESSIONS.removeSessionWithUser(session);
-        System.out.println("СЕССИЯ УДАЛЕНА");
-        try {
-            clientSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public void closeSocket() {

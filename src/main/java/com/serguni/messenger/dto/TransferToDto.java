@@ -20,6 +20,7 @@ public class TransferToDto {
 
     public static UserInfoDto getUserInfoDto(User user) {
         byte[] avatar = Server.userRepository.getAvatarById(user.getId());
+        Date lastOnline = Server.USERS_SESSIONS.isOnlineByUserId(user.getId()) ? new Date(0) : user.getLastOnline();
         UserInfoDto userInfoDto = new UserInfoDto(
                 user.getId(),
                 user.getNickname(),
@@ -28,7 +29,7 @@ public class TransferToDto {
                 user.getLastName(),
                 user.getAboutMe(),
                 avatar,
-                user.getLastOnline()
+                lastOnline
         );
         return userInfoDto;
     }
@@ -185,7 +186,11 @@ public class TransferToDto {
         SortedSet<UserInfoDto> userDtos = new TreeSet<>();
 
         for (WatchedChat chatOfUser : watchedChat.getChat().getWatchedChats()) {
-            userDtos.add(getUserInfoDto(chatOfUser.getUser()));
+            User user = chatOfUser.getUser();
+            if (Server.USERS_SESSIONS.isOnlineByUserId(user.getId())) {
+                user.setLastOnline(new Date(0));
+            }
+            userDtos.add(getUserInfoDto(user));
         }
 
         SortedSet<MessageDto> messageDtos = new TreeSet<>();
@@ -234,12 +239,5 @@ public class TransferToDto {
                 message.getUser().getNickname()
         );
         return messageDto;
-//        MessageDto messageDto = new MessageDto(
-//                message.getId(),
-//                message.getSendTime(),
-//                message.getText(),
-//                message.getReadTime(),
-//                TransferToDto.getUserInfoDto(message.getUser()));
-//        return messageDto;
     }
 }

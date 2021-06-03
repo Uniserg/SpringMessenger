@@ -122,4 +122,18 @@ public class WatchedChatDto implements Serializable {
     public void setBlocked(boolean blocked) {
         isBlocked = blocked;
     }
+
+    @Override
+    public String toString() {
+        return "WatchedChatDto{" +
+                "chatId=" + chatId +
+                ", userId=" + userId +
+                ", name='" + name + '\'' +
+                ", syncTime=" + syncTime +
+                ", isAdmin=" + isAdmin +
+                ", isBlocked=" + isBlocked +
+                ", messages=" + messages +
+                ", users=" + users +
+                '}';
+    }
 }
