@@ -8,8 +8,14 @@ import org.springframework.data.repository.query.Param;
 
 import javax.transaction.Transactional;
 import java.util.Date;
+import java.util.List;
 
 public interface SessionRepository extends JpaRepository<Session, Long> {
+
+    List<Session> findAllByUserId(long userId);
+
+    int deleteByIdAndUserId(long id, long userId);
+
     @Query(value = "SELECT nextval('sessions_seq')", nativeQuery = true)
     long getNextId();
 

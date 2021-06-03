@@ -18,23 +18,6 @@ public class MessageDto implements Serializable, Comparable<MessageDto> {
     private Set<MessageDto> redirectedMessages;
     private Set<ContentDto> contents;
 
-//    public MessageDto(Message message) {
-//        id = message.getId();
-//        sendTime = message.getSendTime();
-//        text = message.getText();
-//        readTime = message.getReadTime();
-//        chat = new ChatDto(message.getChat());
-//        user = new UserDto(message.getUser());
-//        redirectedMessages = new HashSet<>();
-//        for (Message redirectedMessage : message.getRedirectedMessages()){
-//            redirectedMessages.add(new MessageDto(redirectedMessage));
-//        }
-//        contents = new HashSet<>();
-//        for (Content content : message.getContents()) {
-//            contents.add(new ContentDto(content));
-//        }
-//    }
-
     public MessageDto(String text, long chatId, String userSenderNickname) {
         this.text = text;
         this.chatId = chatId;

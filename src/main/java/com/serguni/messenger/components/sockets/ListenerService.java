@@ -31,14 +31,9 @@ public class ListenerService extends Thread {
 
     @Override
     public void run() {
-        for (WatchedChat watchedChat : session.getUser().getWatchedChats()) {
-            System.out.println(watchedChat.getWatchedMessages());
-        }
-        System.out.println("СЛУШАТЕЛЬ ЗАПУЩЕН!");
         try {
             while (true) {
                 SocketMessage message = (SocketMessage) in.readObject();
-
 
                 switch (message.getType()) {
                     case SEARCH_USER -> findUsers((String) message.getBody());

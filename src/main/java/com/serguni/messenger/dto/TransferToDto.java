@@ -227,10 +227,6 @@ public class TransferToDto {
     }
 
     public static MessageDto getMessageDto(Message message) {
-
-        System.out.println("ФОРМИРУЕМ MESSAGE DTO -> TransferToDto -> 215");
-        System.out.println(message.getUser() + " USER сообщения");
-
         MessageDto messageDto = new MessageDto(
                 message.getId(),
                 message.getSendTime(),

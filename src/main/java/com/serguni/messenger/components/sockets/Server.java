@@ -66,11 +66,9 @@ public class Server extends Thread {
     }
 
     public static void deleteAllOtherSessions(Session session, ListenerService currentListenerService) throws IOException {
-//        USERS_SESSIONS.removeSession(session);
         USERS_SESSIONS.getSessionsByUserId(session.getUser().getId()).remove(session.getId());
 
         Map<Long, ListenerService> otherSessions = USERS_SESSIONS.getSessionsByUserId(session.getUser().getId());
-        System.out.println("Server -> 61 -> null other sessions");
 
         for (long otherSessionId : otherSessions.keySet()) {
             otherSessions.remove(otherSessionId).closeSocket();
@@ -121,14 +119,15 @@ public class Server extends Thread {
 
     public static void deleteOtherSession(Session session, long sessionOnDeleteId) throws IOException {
         Map<Long, ListenerService> userSessions = USERS_SESSIONS.getSessionsByUserId(session.getUser().getId());
-//        if (userSessions.containsKey(sessionOnDeleteId))
-//            userSessions.remove(sessionOnDeleteId).closeSocket();
+        if (userSessions != null) {
+            ListenerService listenerService = userSessions.remove(sessionOnDeleteId);
+            if (listenerService != null)
+                listenerService.closeSocket();
+        }
 
-//        USERS_SESSIONS.removeSessionWithUser(session);
-        userSessions.remove(sessionOnDeleteId).closeSocket();
-
-        sessionRepository.deleteById(sessionOnDeleteId);
-//        session.getUser().getSessions().remove(session);
+        // ЗАПРОС к базе данных с проверкой принадлежности сессии к пользователю который хочет удалить сессию
+        if (sessionRepository.deleteByIdAndUserId(sessionOnDeleteId, session.getUser().getId()) == 0)
+            return;
 
         trackingRepository.deleteAllTrackedUsersByTrackingSessionsId(sessionOnDeleteId);
 
